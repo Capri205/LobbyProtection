@@ -4,7 +4,6 @@ import lobbyprotect.commands.BuildCommand;
 import lobbyprotect.commands.DmgCommand;
 import lobbyprotect.listeners.Listeners;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -47,8 +46,6 @@ public final class Main extends JavaPlugin {
 
         getCommand("build").setExecutor(new BuildCommand());
         getCommand("dmg").setExecutor(new DmgCommand());
-        Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "<< Build plugin loaded >>");
-
 
         Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
             if (getConfig().getBoolean("setWeatherToClearOnStart")) Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "weather clear 1000000");
