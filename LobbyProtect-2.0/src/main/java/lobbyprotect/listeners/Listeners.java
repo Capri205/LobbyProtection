@@ -1,6 +1,8 @@
 package lobbyprotect.listeners;
 
 import lobbyprotect.Main;
+import net.md_5.bungee.api.ChatColor;
+
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -22,19 +24,19 @@ public class Listeners implements Listener {
     private static boolean dmg = false;
 //---------------------------------------------------------------------------------------------------------------------
     public void onCommand(Player player) {
-        if (map.get(player.getUniqueId())) {
-            map.put(player.getUniqueId(), false);
-            player.setGameMode(GameMode.SURVIVAL);
-        } else {
-            map.put(player.getUniqueId(), true);
-            player.setGameMode(GameMode.CREATIVE);
-        }
+   		if (map.get(player.getUniqueId())) {
+   			map.put(player.getUniqueId(), false);
+   			player.setGameMode(GameMode.SURVIVAL);
+   		} else {
+   			map.put(player.getUniqueId(), true);
+  			player.setGameMode(GameMode.CREATIVE);
+   		}
     }
 //---------------------------------------------------------------------------------------------------------------------
     public boolean onDmgCommand() {
-        if (dmg) dmg = false;
-        else dmg = true;
-        return dmg;
+   		if (dmg) dmg = false;
+   		else dmg = true;
+   		return dmg;
     }
 //---------------------------------------------------------------------------------------------------------------------
     @EventHandler

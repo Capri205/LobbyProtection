@@ -44,8 +44,8 @@ public final class Main extends JavaPlugin {
         PluginManager manager = Bukkit.getPluginManager();
         manager.registerEvents(new Listeners(), this);
 
-        getCommand("build").setExecutor(new BuildCommand());
-        getCommand("dmg").setExecutor(new DmgCommand());
+        getCommand("lpbld").setExecutor(new BuildCommand());
+        getCommand("lpdmg").setExecutor(new DmgCommand());
 
         Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
             if (getConfig().getBoolean("setWeatherToClearOnStart")) Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "weather clear 1000000");

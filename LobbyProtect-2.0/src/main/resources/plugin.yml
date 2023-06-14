@@ -3,7 +3,7 @@ version: '${project.version}'
 main: lobbyprotect.Main
 api-version: "1.20"
 commands:
-  build:
+  lpbld:
     permission: build.buildCommand
-  dmg:
-    permission: build.dmgCommand
+  lpdmg:
+    permission: damage.damageCommand
