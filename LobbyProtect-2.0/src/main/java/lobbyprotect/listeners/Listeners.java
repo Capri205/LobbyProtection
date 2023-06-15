@@ -1,25 +1,30 @@
 package lobbyprotect.listeners;
 
 import lobbyprotect.Main;
-import net.md_5.bungee.api.ChatColor;
-
 import org.bukkit.GameMode;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Listeners implements Listener {
 //---------------------------------------------------------------------------------------------------------------------
+	static Logger log = Logger.getLogger("Minecraft");
     private static Map<UUID, Boolean> map = new HashMap<>();
     private static boolean dmg = false;
 //---------------------------------------------------------------------------------------------------------------------
@@ -74,10 +79,31 @@ public class Listeners implements Listener {
     }
 
     @EventHandler
+    public void onHangingBreak(HangingBreakByEntityEvent event) {
+    	if (!Main.getInstance().getConfig().getBoolean("disableBlockBreak")) return;
+    	log.log(Level.INFO, "debug - event: " + event.getEventName() + ", " + event.getEntity().getName() + ", " + event.getRemover().getName() + ", " + event.getRemover().getType());
+    	if (event.getRemover() instanceof Player ) {
+    		Player player = (Player) event.getRemover();
+    		map.putIfAbsent(player.getUniqueId(), false);
+    		if (!map.get(player.getUniqueId())) event.setCancelled(true);
+    	}
+    }
+
+    @EventHandler
     public void onEntityDamage(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player)) return;
         if (!Main.getInstance().getConfig().getBoolean("disablePlayerDamage")) return;
         if (!dmg) event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onFrameEntityDamage(EntityDamageByEntityEvent event) {
+    	if (event.getEntity() instanceof ItemFrame && event.getDamager() instanceof Player) {
+    		event.setCancelled(true);
+    	}
+    	if (event.getDamager() instanceof Projectile) {
+    		event.setCancelled(true);
+    	}
     }
 
     @EventHandler
