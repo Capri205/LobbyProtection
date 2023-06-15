@@ -2,6 +2,7 @@ package lobbyprotect.listeners;
 
 import lobbyprotect.Main;
 import org.bukkit.GameMode;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -105,6 +106,15 @@ public class Listeners implements Listener {
     	if (event.getDamager() instanceof Projectile) {
     		event.setCancelled(true);
     	}
+    }
+
+    @EventHandler
+    public void FrameRotate(PlayerInteractEntityEvent event) {
+    	if (!Main.getInstance().getConfig().getBoolean("disableBlockBreak")) return;
+    	if (event.getRightClicked().getType().equals(EntityType.ITEM_FRAME)) {
+    		Player player = event.getPlayer();
+    		if (!map.get(player.getUniqueId())) event.setCancelled(true);
+        }
     }
 
     @EventHandler
