@@ -81,7 +81,6 @@ public class Listeners implements Listener {
     @EventHandler
     public void onHangingBreak(HangingBreakByEntityEvent event) {
     	if (!Main.getInstance().getConfig().getBoolean("disableBlockBreak")) return;
-    	log.log(Level.INFO, "debug - event: " + event.getEventName() + ", " + event.getEntity().getName() + ", " + event.getRemover().getName() + ", " + event.getRemover().getType());
     	if (event.getRemover() instanceof Player ) {
     		Player player = (Player) event.getRemover();
     		map.putIfAbsent(player.getUniqueId(), false);
@@ -98,8 +97,10 @@ public class Listeners implements Listener {
 
     @EventHandler
     public void onFrameEntityDamage(EntityDamageByEntityEvent event) {
+    	if (!Main.getInstance().getConfig().getBoolean("disableBlockBreak")) return;
     	if (event.getEntity() instanceof ItemFrame && event.getDamager() instanceof Player) {
-    		event.setCancelled(true);
+    		Player player = (Player) event.getDamager();
+    		if (!map.get(player.getUniqueId())) event.setCancelled(true);
     	}
     	if (event.getDamager() instanceof Projectile) {
     		event.setCancelled(true);
