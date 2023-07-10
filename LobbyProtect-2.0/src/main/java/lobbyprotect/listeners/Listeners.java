@@ -9,7 +9,11 @@ import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockBurnEvent;
+import org.bukkit.event.block.BlockIgniteEvent;
+import org.bukkit.event.block.BlockIgniteEvent.IgniteCause;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
@@ -78,6 +82,12 @@ public class Listeners implements Listener {
         map.putIfAbsent(event.getPlayer().getUniqueId(), false);
         if (!map.get(event.getPlayer().getUniqueId())) event.setCancelled(true);
     }
+    
+    @EventHandler
+    public void onBlockBurn(BlockBurnEvent event) {
+    	if (!Main.getInstance().getConfig().getBoolean("disableBlockBreak")) return;
+    	event.setCancelled(true);
+    }
 
     @EventHandler
     public void onHangingBreak(HangingBreakByEntityEvent event) {
@@ -104,6 +114,16 @@ public class Listeners implements Listener {
     		if (!map.get(player.getUniqueId())) event.setCancelled(true);
     	}
     	if (event.getDamager() instanceof Projectile) {
+    		event.setCancelled(true);
+    	}
+    }
+
+    // prevents block spreading, like fire, mushrooms etc, whilst still allowing blocks to burn
+    // blocks breaking by fire is handled by BlockBurnEvent
+    @EventHandler
+    public void blockIgnition(BlockIgniteEvent event) {
+    	if (!Main.getInstance().getConfig().getBoolean("disableBlockSpread")) return;
+    	if (event.getCause().equals(IgniteCause.SPREAD)) {
     		event.setCancelled(true);
     	}
     }
