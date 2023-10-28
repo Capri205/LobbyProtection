@@ -1,7 +1,10 @@
 package lobbyprotect.listeners;
 
 import lobbyprotect.Main;
+
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
@@ -16,12 +19,15 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -173,5 +179,50 @@ public class Listeners implements Listener {
     @EventHandler
     public void onPlayerKick(PlayerKickEvent event) {
         if (Main.getInstance().getConfig().getBoolean("disablePlayerKickMessage")) event.setLeaveMessage(null);
+    }
+    
+    @EventHandler
+    public void onMobSpawn( EntitySpawnEvent event ) {
+    	
+    	Entity spawnedmob = event.getEntity();
+    	if ( spawnedmob instanceof org.bukkit.entity.LivingEntity ) {
+
+    		// first check if stop all spawning is on
+    		if ( Main.getInstance().getConfig().getBoolean( "stopallspawning" ) ) {
+    			event.setCancelled( true );
+    		} else {
+    		
+    			// next check allowed list
+    			if ( Main.getInstance().getConfig().getList( "allowedmobs" ).size() > 0 &&
+    				!Main.getInstance().getConfig().getList( "allowedmobs" ).contains( event.getEntityType().toString() ) ) {
+    				event.setCancelled( true );
+    				return;
+    			}
+    			// then check disallowed list
+    			if ( Main.getInstance().getConfig().getList( "disallowedmobs" ).size() > 0 &&
+    				Main.getInstance().getConfig().getList( "disallowedmobs" ).contains( event.getEntityType().toString() ) ) {
+    				event.setCancelled( true );
+    			}
+    		}
+    		
+    		// finally check if we have have any population limits in place for the spawned mob
+    		Map<String, Integer> moblimits = new HashMap<>();
+    		for ( String key : Main.getInstance().getConfig().getConfigurationSection( "populationenforcement" ).getKeys( false ) ) {
+    			moblimits.put( key,  Main.getInstance().getConfig().getConfigurationSection( "populationenforcement" ).getInt( key ) );
+    		}
+    		if ( moblimits.size() > 0 && moblimits.keySet().contains( spawnedmob.getType().toString() ) ) {
+    			int mobcount = 0;
+    			Iterator<Entity> eit = Bukkit.getWorld("world").getEntities().iterator();
+				while (eit.hasNext()) {
+					Entity entity = eit.next();
+					if ( entity.getType().toString().equals( spawnedmob.getType().toString() ) ) {
+						mobcount++;
+					}
+				}
+				if ( mobcount >= moblimits.get( spawnedmob.getType().toString() ) ) {
+					event.setCancelled( true );
+				}
+    		}
+    	}
     }
 }

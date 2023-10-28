@@ -3,6 +3,11 @@ package lobbyprotect;
 import lobbyprotect.commands.BuildCommand;
 import lobbyprotect.commands.DmgCommand;
 import lobbyprotect.listeners.Listeners;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -36,7 +41,10 @@ public final class Main extends JavaPlugin {
         if (!getConfig().contains("setTimeOnStart")) { getConfig().set("setTimeOnStart", true); }
         if (!getConfig().contains("time")) { getConfig().set("time", 12000); }
         if (!getConfig().contains("keepInventory")) { getConfig().set("keepInventory", true); }
-
+        if (!getConfig().contains("stopallspawning")) { getConfig().set("stopallspawning", false); }
+        if (!getConfig().contains("allowedmobs")) { getConfig().set("allowedmobs", new ArrayList<>()); }
+        if (!getConfig().contains("disallowedmobs")) { getConfig().set("disallowedmobs", new ArrayList<>()); }
+        if (!getConfig().contains("populationenforcement")) { getConfig().createSection("populationenforcement", new HashMap<String, Object>() ); }
         saveConfig();
     }
 
