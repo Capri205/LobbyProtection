@@ -40,11 +40,11 @@ Commands:
 - Toggles by ingame command if all players can take damage or not. Returns a message with current state: "Player damage is now true/false" 
 - /lpmob
 - permission: lpmob.control
-- usage: /lpmob <allowed | disallowed> <add | remove> mob [,mob ...]<br>
-- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/lpmob popcon add mob count
-- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/lpmob popcon remove mob<br>
-- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/lpmob <allowed | disallowed | popcon> list
-- In-game management of mob spawning and mob spawn limits using the allowed, disallowed and population control lists.
+- usage: /lpmob &lt;allowed | disallowed&gt; &lt;add | remove&gt; mob [,mob ...] - add or remove a mob from the spawn control lists<br>
+- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/lpmob popcon add mob count - add a mob to population control<br>
+- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/lpmob popcon remove mob - remove a mob from population control<br>
+- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/lpmob &lt;allowed | disallowed | popcon&gt; list - list mobs in list<br>
+- In-game management of mob spawning and mob spawn limits using the allowed, disallowed and population control lists.<br><br>
 
 Config:
 - config.yml
