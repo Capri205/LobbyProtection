@@ -30,14 +30,21 @@ You can disable every feature in the config file. Just change true to false.
 On join, every players gamemode gets changed to survival mode.
 
 Commands: 
-- /build 
+- /lpbld 
 - permission: build.buildCommand 
-- usage: /build 
+- usage: /lpbld 
 - Allows just the player who executed the command to bypass all restrictions. Also the gamemode of the player gets changed to creative mode. All other players are unaffected. 
-- /dmg 
+- /lpdmg 
 - permission: build.dmgCommand 
-- usage: /dmg 
+- usage: /lpdmg 
 - Toggles by ingame command if all players can take damage or not. Returns a message with current state: "Player damage is now true/false" 
+- /lpmob
+- permission: lpmob.control
+- usage: /lpmob <allowed | disallowed> <add | remove> mob [,mob ...]<br>
+- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/lpmob popcon add mob count
+- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/lpmob popcon remove mob<br>
+- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/lpmob <allowed | disallowed | popcon> list
+- In-game management of mob spawning and mob spawn limits using the allowed, disallowed and population control lists.
 
 Config:
 - config.yml
