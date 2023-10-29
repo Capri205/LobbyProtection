@@ -2,12 +2,12 @@ package lobbyprotect;
 
 import lobbyprotect.commands.BuildCommand;
 import lobbyprotect.commands.DmgCommand;
+import lobbyprotect.commands.MobControl;
 import lobbyprotect.listeners.Listeners;
+import net.md_5.bungee.api.ChatColor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -16,6 +16,13 @@ public final class Main extends JavaPlugin {
 
     private static Main instance;
 
+	private static String plugin = "LobbyProtect";
+	private static String pluginprefix = "[" + plugin + "]";
+	private static String chatmsgprefix = ChatColor.AQUA + "" + ChatColor.BOLD + plugin + ChatColor.DARK_GRAY + ChatColor.BOLD + " » " + ChatColor.LIGHT_PURPLE + "";
+	private static String logmsgprefix = pluginprefix + " » ";
+	
+	private static boolean inConfigUpdate = false;
+	
     @Override
     public void onLoad() {
         instance = this;
@@ -56,6 +63,7 @@ public final class Main extends JavaPlugin {
 
         getCommand("lpbld").setExecutor(new BuildCommand());
         getCommand("lpdmg").setExecutor(new DmgCommand());
+        getCommand("lpmob").setExecutor(new MobControl());
 
         Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
             if (getConfig().getBoolean("setWeatherToClearOnStart")) Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "weather clear 1000000");
@@ -74,4 +82,23 @@ public final class Main extends JavaPlugin {
         return instance;
     }
 
+	// consistent messaging
+	public static String getPluginName() {
+		return plugin;
+	}
+	public static String getPluginPrefix() {
+		return pluginprefix;
+	}
+	public String getChatMsgPrefix() {
+		return chatmsgprefix;
+	}
+	public String getLogMsgPrefix() {
+		return logmsgprefix;
+	}
+	public boolean getInConfigUpdate() {
+		return inConfigUpdate;
+	}
+	public void setInConfigUpdate( boolean state ) {
+		inConfigUpdate = state;
+	}
 }

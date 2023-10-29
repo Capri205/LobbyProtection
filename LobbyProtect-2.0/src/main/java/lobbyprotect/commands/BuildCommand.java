@@ -17,7 +17,6 @@ public class BuildCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] strings) {
-    	log.log(Level.INFO, "debug - onCommand - command: " + command.getName() + ", " + command.getPermission() + ", s: " + s + ", sender: " + commandSender.getName());
         if (!(commandSender instanceof Player)) return false;
         Player player = (Player) commandSender;
         if (player.hasPermission("lpbld.buildCommand") || player.isOp()) {

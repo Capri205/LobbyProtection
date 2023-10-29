@@ -7,3 +7,5 @@ commands:
     permission: build.buildCommand
   lpdmg:
     permission: damage.damageCommand
+  lpmob:
+    permission: lpmob.control
