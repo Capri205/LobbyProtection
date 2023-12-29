@@ -77,8 +77,8 @@ is allowed, then checking whether it's a disallowed mob, and then finally checki
 the mobs in the world and seeing if it breaches the limits set.<br><br>
 List them up in the config like this. Dash and space prefixes the allowed and disallowed mob lists,<br>
 while two spaces prefix the populationenforcement mobs, with a colon, space and the number of allowed mobs<br>
-following that. The number of allowed mobs must be an iteger:<br>
-allowedmobs:<br><br>
+following that. The number of allowed mobs must be an iteger:<br><br>
+allowedmobs:<br>
 &mdash; ALLAY<br>
 &mdash; DROWNED<br>
 &mdash; GLOW_SQUID<br>
@@ -88,4 +88,5 @@ allowedmobs:<br><br>
 disallowedmobs: []<br>
 populationenforcement:<br>
 &nbsp;&nbsp;DROWNED: 10<br>
+&nbsp;&nbsp;GLOW_QUID: 20<br>
 
