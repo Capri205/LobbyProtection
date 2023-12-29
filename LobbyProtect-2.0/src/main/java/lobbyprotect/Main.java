@@ -31,6 +31,7 @@ public final class Main extends JavaPlugin {
         if (!getConfig().contains("disablePlayerDamage")) { getConfig().set("disablePlayerDamage", true); }
         if (!getConfig().contains("disableInventoryClickEvent")) { getConfig().set("disableInventoryClickEvent", true); }
         if (!getConfig().contains("disableBlockBreak")) { getConfig().set("disableBlockBreak", true); }
+        if (!getConfig().contains("disableFarmBreak")) { getConfig().set("disableFarmBreak", true); }
         if (!getConfig().contains("disableBlockSpread")) { getConfig().set("disableBlockSpread", true); }
         if (!getConfig().contains("disableBlockIgnition")) { getConfig().set("disableBlockIgnition", true); }
         if (!getConfig().contains("disableBlockPlace")) { getConfig().set("disableBlockPlace", true); }

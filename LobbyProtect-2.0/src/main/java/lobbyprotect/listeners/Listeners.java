@@ -1,10 +1,10 @@
 package lobbyprotect.listeners;
 
 import lobbyprotect.Main;
-import net.md_5.bungee.api.ChatColor;
-
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockIgniteEvent;
@@ -20,6 +21,7 @@ import org.bukkit.event.block.BlockIgniteEvent.IgniteCause;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityInteractEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
@@ -29,9 +31,7 @@ import org.bukkit.event.player.*;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Listeners implements Listener {
@@ -125,6 +125,25 @@ public class Listeners implements Listener {
     	}
     }
 
+    @EventHandler
+    public void onEntityInteract(EntityInteractEvent event) {
+    	if (!Main.getInstance().getConfig().getBoolean("disableFarmBreak")) return;
+        Block block = event.getBlock();
+        if(block != null && block.getType() == Material.FARMLAND) {
+            event.setCancelled(true);
+        }
+    }
+    
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+    	if (!Main.getInstance().getConfig().getBoolean("disableFarmBreak")) return;
+        if(event.getAction() == Action.PHYSICAL) {
+            if(event.getClickedBlock().getType() == Material.FARMLAND) {
+                event.setCancelled(true);
+            }
+        }
+    }
+    
     // prevents block spreading, like fire, mushrooms etc, whilst still allowing blocks to burn
     // blocks breaking by fire is handled by BlockBurnEvent
     @EventHandler
