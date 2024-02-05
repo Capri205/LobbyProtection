@@ -70,6 +70,9 @@ stopallspawning: false<br>
 allowedmobs: []<br>
 disallowedmobs: []<br>
 populationenforcement: {}<br>
+rangelimitcheckinterval: 20<br>
+rangelimitspeedmodifier: 1.5<br>
+rangelimits: {}<br>
 
 Allowedmobs and disallowed mobs are a list of living entities you want or don't want to spawn.<br>
 You can mix them up as checks follow one to the other, so first checking whether the spawned mob<br>
@@ -90,3 +93,32 @@ populationenforcement:<br>
 &nbsp;&nbsp;DROWNED: 10<br>
 &nbsp;&nbsp;GLOW_QUID: 20<br>
 
+Range limits are mobs by type or custom name that you want to contain within a radius of a home locaton.<br>
+The rangelimits section defines the name or type of a mob, its home location (x,y,z) and the radius from<br>
+the home location they are allowed to move out to. There's a task that runs, by default, every 20 ticks or<br>
+1 second and will check all the configured mobs to see if they are outside of the radius or not. Those that<br>
+are will be pushed onto a list along with the estimated time it would take for the mob to get back to the<br>
+home location. The mob is then given instructions to head home, and a multiplier used to speed it up a bit.<br>
+The check task will check the mobs on the list to see if they are still on their way home, reached home, or<br>
+exceeded the estimated time to get back (multiplied by 4). This gives mobs that get distracted more time to get<br>
+back than a strict straight line run. The time is based on how far away from home the mob is. If a mob is<br>
+within 10 blocks of home then it is removed from the list. If the mob is still on the way then the go home<br>
+instruction is re-applied to the mob to keep it on track. If the time taken so far to get back is greater than<br>
+4 times the original estimate, then the mob is removed and a new mob of that type or name spawned at the home<br>
+location. In the example configuration below we are tracking only bees with a custom name "Happy Bee" and only<br>
+Dolphns with the custom name "Dodgy Dolphin", and any Parrots or Sniffers by mob type.<br><br>
+rangelimitcheckinterval: 20<br>
+rangelimitspeedmodifier: 1.5<br>
+rangelimits:<br>
+&mdash; name: Happy Bee<br>
+&nbsp;&nbsp;home: -180,48,-133<br>
+&nbsp;&nbsp;radius: 40<br>
+&mdash; type: Parrot<br>
+&nbsp;&nbsp;home: -86.5,134,-74.5<br>
+&nbsp;&nbsp;radius: 40<br>
+&mdash; name: Dodgy Dolphin<br>
+&nbsp;&nbsp;home: -0.5,33,0.5<br>
+&nbsp;&nbsp;radius: 60<br>
+&mdash; type: Sniffer<br>
+&nbsp;&nbsp;home: -126,42,-186<br>
+&nbsp;&nbsp;radius: 30<br>
