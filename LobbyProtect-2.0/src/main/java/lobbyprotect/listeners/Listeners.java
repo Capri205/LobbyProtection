@@ -6,6 +6,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Dolphin;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemFrame;
@@ -32,6 +33,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Listeners implements Listener {
@@ -108,9 +110,18 @@ public class Listeners implements Listener {
 
     @EventHandler
     public void onEntityDamage(EntityDamageEvent event) {
-        if (!(event.getEntity() instanceof Player)) return;
-        if (!Main.getInstance().getConfig().getBoolean("disablePlayerDamage")) return;
-        if (!dmg) event.setCancelled(true);
+    	if (!(event.getEntity() instanceof Player)) {
+    		if ( event.getEntity() instanceof Dolphin ) {
+    			if ( event.getCause().equals( EntityDamageEvent.DamageCause.DROWNING ) && Main.getInstance().getConfig().getBoolean("disableDolphinDrown") ) {
+    				Dolphin dolphin = (Dolphin) event.getEntity();
+    				dolphin.setRemainingAir(Integer.MAX_VALUE);
+    				event.setCancelled( true );
+    			}
+    		}
+    	} else {
+    		if (!Main.getInstance().getConfig().getBoolean("disablePlayerDamage")) return;
+    		if (!dmg) event.setCancelled(true);
+    	}
     }
 
     @EventHandler
