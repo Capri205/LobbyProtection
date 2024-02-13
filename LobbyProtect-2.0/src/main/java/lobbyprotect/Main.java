@@ -77,7 +77,7 @@ public final class Main extends JavaPlugin {
         if (!getConfig().contains("setWeatherToClearOnStart")) { getConfig().set("setWeatherToClearOnStart", true); }
         if (!getConfig().contains("disableDaylightCycle")) { getConfig().set("disableDaylightCycle", true); }
         if (!getConfig().contains("setTimeOnStart")) { getConfig().set("setTimeOnStart", true); }
-        if (!getConfig().contains("time")) { getConfig().set("time", 12000); }
+        if (!getConfig().contains("time")) { getConfig().set("time", 7000); }
         if (!getConfig().contains("keepInventory")) { getConfig().set("keepInventory", true); }
         if (!getConfig().contains("stopallspawning")) { getConfig().set("stopallspawning", false); }
         if (!getConfig().contains("allowedmobs")) { getConfig().set("allowedmobs", new ArrayList<>()); }

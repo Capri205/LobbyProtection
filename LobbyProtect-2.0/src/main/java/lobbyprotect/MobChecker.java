@@ -60,12 +60,12 @@ public class MobChecker  extends BukkitRunnable {
 			// looking up by mob type or name
 			boolean doRangeCheck = false;
 			String mobLookup = "";
-			if ( rangemobs.keySet().contains( entityType ) && rangemobs.get( entityType ).getby().equals( "type" ) ) {
-				doRangeCheck = true;
-				mobLookup = entityType;
-			} else if (	rangemobs.keySet().contains( entityName ) && rangemobs.get( entityName).getby().equals( "name" ) ) {
+			if ( rangemobs.keySet().contains( entityName ) && rangemobs.get( entityName ).getby().equals( "name" ) ) {
 				doRangeCheck = true;
 				mobLookup = entityName;
+			} else if ( rangemobs.keySet().contains( entityType ) && rangemobs.get( entityType ).getby().equals( "type" ) ) {
+				doRangeCheck = true;
+				mobLookup = entityType;
 			}
 
 			// next mob if this one doesn't need checking
@@ -86,7 +86,7 @@ public class MobChecker  extends BukkitRunnable {
 					// taking too long to get home. remove and respawn
 					log.log(Level.INFO,"debug - " + mobLookup + "("+shortId+") - is taking too long to get home. " + totaltimesofar + "s. Removing and respawning");
 					homebound.remove( entityId );
-					if ( !respawnMob( entity, mobLookup ) ) {
+					if ( !respawnMob( entity, rangemobs.get( mobLookup ).getby() ) ) {
 						log.log(Level.WARNING, Main.getInstance().getLogMsgPrefix() + "Failed to respawn " + ( mobLookup.equals( "type" ) ? entity.getType().name() : entity.getCustomName() ) + " at home location");
 					}
 					
@@ -145,14 +145,22 @@ public class MobChecker  extends BukkitRunnable {
 	 */
 	private boolean respawnMob( Entity entity, String lookupType ) {
 	
-		LivingEntity newMob = (LivingEntity) entity.getWorld().spawnEntity( rangemobs.get( lookupType ).getHome(), entity.getType() );
+		LivingEntity newMob;
+		if ( lookupType.equals( "name" ) ) {
+			
+			newMob = (LivingEntity) entity.getWorld().spawnEntity( rangemobs.get( entity.getCustomName() ).getHome(), entity.getType() );
+			newMob.setCustomName( entity.getCustomName() );
+		} else {
+			newMob = (LivingEntity) entity.getWorld().spawnEntity( rangemobs.get( entity.getType().name() ).getHome(), entity.getType() );
+		}
+
 		if ( newMob == null ) {
 			return false;
 		}
-		// if lookup type is by name then set the custom name
-		if ( lookupType.equals( "name" ) ) {
-			newMob.setCustomName( entity.getCustomName() );
-		}
+
+		newMob.setInvulnerable( true );
+		newMob.setPersistent( true );
+		
 		// remove the stuck mob
 		entity.remove();
 		
