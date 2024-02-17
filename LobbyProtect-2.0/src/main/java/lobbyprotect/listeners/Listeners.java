@@ -1,6 +1,7 @@
 package lobbyprotect.listeners;
 
 import lobbyprotect.Main;
+import lobbyprotect.Main.PopControl;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -17,9 +18,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
+import org.bukkit.event.block.BlockFadeEvent;
 import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.block.BlockIgniteEvent.IgniteCause;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.BlockSpreadEvent;
+import org.bukkit.event.block.LeavesDecayEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityInteractEvent;
@@ -30,8 +34,8 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,6 +45,9 @@ public class Listeners implements Listener {
 	static Logger log = Logger.getLogger("Minecraft");
     private static Map<UUID, Boolean> map = new HashMap<>();
     private static boolean dmg = false;
+    
+	Main plugin = Main.getInstance();
+
 //---------------------------------------------------------------------------------------------------------------------
     public void onCommand(Player player) {
    		if (map.get(player.getUniqueId())) {
@@ -156,14 +163,34 @@ public class Listeners implements Listener {
     }
     
     // prevents block spreading, like fire, mushrooms etc, whilst still allowing blocks to burn
-    // blocks breaking by fire is handled by BlockBurnEvent
     @EventHandler
-    public void blockIgnition(BlockIgniteEvent event) {
+    public void blockIgnition(BlockSpreadEvent event) {
     	if (!Main.getInstance().getConfig().getBoolean("disableBlockSpread")) return;
-    	if (event.getCause().equals(IgniteCause.SPREAD)) {
-    		event.setCancelled(true);
+    	event.setCancelled(true);
+    }
+    // prevents block breaking as a result of fire
+    @EventHandler
+    public void blockIgnition(BlockBurnEvent event) {
+    	if (!Main.getInstance().getConfig().getBoolean("disableBlockBreak")) return;
+    	event.setCancelled(true);
+    }
+
+    // prevent leaf decay
+    @EventHandler
+    public void blockIgnition( LeavesDecayEvent event) {
+    	if (!Main.getInstance().getConfig().getBoolean("disableLeafDecay")) return;
+    	event.setCancelled(true);
+    }
+
+    // prevent ice melting
+    @EventHandler
+    public void blockMelt( BlockFadeEvent event ) {
+    	if ( !Main.getInstance().getConfig().getBoolean( "disableIceMelt") ) return;
+    	if ( event.getBlock().getType().equals( Material.ICE ) ) {
+    		event.setCancelled( true );
     	}
     }
+    
 
     @EventHandler
     public void FrameRotate(PlayerInteractEntityEvent event) {
@@ -223,9 +250,11 @@ public class Listeners implements Listener {
 
     		FileConfiguration config = Main.getInstance().getConfig();
     		
-    		// first check if stop all spawning is on
+    		// check if stop all spawning is on
     		if ( config.getBoolean( "stopallspawning" ) ) {
     			event.setCancelled( true );
+    			return;
+    			
     		} else {
     		
     			// next check allowed list
@@ -238,27 +267,49 @@ public class Listeners implements Listener {
     			if ( config.getList( "disallowedmobs" ).size() > 0 &&
     				config.getList( "disallowedmobs" ).contains( spawnedmobtype ) ) {
     				event.setCancelled( true );
+    				return;
     			}
     		}
-    		
-    		// check if we have have any population limits in place for the spawned mob
-    		// and cancel spawn if we are at or above the world count for that mob
-    		// Note that these counts aren't always perfect due to chunk loading/unloading
-    		if ( config.getConfigurationSection( "populationenforcement" ).contains( spawnedmobtype ) ) {
-    			
-    			int mobcount = 0;
-    			Iterator<Entity> eit = Bukkit.getWorld( "world" ).getEntities().iterator();
-    			while ( eit.hasNext() ) {
-    				Entity entity = eit.next();
-    				if ( entity.getType().toString().equals( spawnedmobtype ) ) {
-    					mobcount++;
-    				}
-    			}
 
-				if ( mobcount >= Integer.valueOf( config.getConfigurationSection( "populationenforcement" ).getInt( spawnedmobtype ) ) ) {
-					event.setCancelled( true );
+    		// finally check if we have have any population limits in place for the spawned mob
+    		Map<String, PopControl> popcontrol = this.plugin.getPopControls();
+			if ( popcontrol == null || popcontrol.size() == 0 ) {
+				return;
+			}
+
+	    	String spawnedmobname = spawnedmob.getCustomName();
+	    	boolean checkByName = false;
+	    	if( spawnedmobname != null && !spawnedmobname.isEmpty() ) {
+	    		checkByName = true;
+	    	}
+			if ( checkByName ) {
+				if ( !popcontrol.containsKey( spawnedmobname ) ) {
+					return;
 				}
-    		}
+			} else if ( !popcontrol.containsKey( spawnedmobtype ) ) {
+				return;
+			}
+
+			// get count of matching mobs by type or name currently in the world
+    		// Note that these counts aren't always perfect due to timing or things like chunk loading/unloading
+			int mobCount = 0;
+			if ( checkByName ) {
+    			mobCount = (int) Bukkit.getWorld("world").getEntities().stream()
+				.map( m -> m.getCustomName())
+				.filter( customName -> Objects.nonNull(customName))
+				.filter( customName -> customName.equals( spawnedmobname )).count();
+			} else {
+    			mobCount = (int) Bukkit.getWorld("world").getEntities().stream()
+				.map( m -> m.getType().name())
+				.filter( type -> Objects.nonNull(type))
+				.filter( type -> type.equals( spawnedmobtype )).count();
+			}				
+
+    		// cancel spawn if we are at or above the world count for that mob
+			int max = popcontrol.get( checkByName ? spawnedmobname : spawnedmobtype ).getMax();
+			if ( mobCount > max ) {
+				event.setCancelled( true );
+			}
     	}
     }
 }

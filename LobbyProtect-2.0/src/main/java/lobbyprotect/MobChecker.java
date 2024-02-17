@@ -11,7 +11,6 @@ import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -22,7 +21,7 @@ import me.gamercoder215.mobchip.bukkit.BukkitBrain;
 
 import lobbyprotect.Main.RangeMob;
 
-public class MobChecker  extends BukkitRunnable {
+public class MobChecker extends BukkitRunnable {
 
 	static Logger log = Logger.getLogger("Minecraft");
 
@@ -41,8 +40,7 @@ public class MobChecker  extends BukkitRunnable {
 	@Override
 	public void run() {
 		
-		// this shouldn't actually be fired as the checker won't hit the scheduler
-		// if there's no range check mobs defined in the config, but just in case
+		// rangemobs size should never be zero here, but but just in case
 		if ( rangemobs.size() == 0 ) {
 			return;
 		}
@@ -84,10 +82,9 @@ public class MobChecker  extends BukkitRunnable {
 				if ( totaltimesofar > ( homebound.get( entityId ).get( "eta" ) * 4 ) ) {
 
 					// taking too long to get home. remove and respawn
-					log.log(Level.INFO,"debug - " + mobLookup + "("+shortId+") - is taking too long to get home. " + totaltimesofar + "s. Removing and respawning");
 					homebound.remove( entityId );
 					if ( !respawnMob( entity, rangemobs.get( mobLookup ).getby() ) ) {
-						log.log(Level.WARNING, Main.getInstance().getLogMsgPrefix() + "Failed to respawn " + ( mobLookup.equals( "type" ) ? entity.getType().name() : entity.getCustomName() ) + " at home location");
+						log.log(Level.WARNING, this.plugin.getLogMsgPrefix() + "Failed to respawn " + ( mobLookup.equals( "type" ) ? entity.getType().name() : entity.getCustomName() ) + " at home location");
 					}
 					
 				} else if ( hometomobdistance > 10 ) {
@@ -101,7 +98,6 @@ public class MobChecker  extends BukkitRunnable {
 					// reached home. calculate how long it took the mob to get home
 					long endtime = System.currentTimeMillis()/1000L;
 					long journeyTime =  endtime - homebound.get( entityId ).get( "starttime" );
-					log.log(Level.INFO," - " + mobLookup + "("+shortId+")," + endtime + "," + journeyTime);
 					homebound.remove( entityId );
 					entity.setGlowing( false );
 					
@@ -132,7 +128,6 @@ public class MobChecker  extends BukkitRunnable {
 				long starttime = System.currentTimeMillis()/1000L;
 				setHomeBound( entity, mobLookup, speedModifier);
 				homebound.put( entityId, Map.of( "eta", (long) etaInSeconds, "starttime", starttime ) );
-				log.log(Level.INFO," - " + mobLookup + "("+shortId+")," + mobVelocity + "," + df.format( hometomobdistance )+ "," + Math.round( etaInSeconds ) + "(" + Math.round( etaInSeconds * 4 ) +")," + starttime );
 			}
 		}
 	}
