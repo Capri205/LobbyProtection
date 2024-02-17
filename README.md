@@ -1,5 +1,5 @@
 # LobbyProtection
-Simple server protection plugin with complete config control. Use /build to bypass all protections.
+Simple server protection plugin with complete config control. Use /lpbld to bypass all protections.
 
 SpigotMC: https://www.spigotmc.org/resources/lobbyprotection.99483/
 
@@ -51,6 +51,10 @@ Config:
 disablePlayerDamage: true<br>
 disableInventoryClickEvent: true<br>
 disableBlockBreak: true<br>
+disableFarmBreak: true<br>
+disableBlockSpread: true<br>
+disableBlockIgnition: true<br>
+disableIceMelt: true<br>
 disableBlockPlace: true<br>
 disablePlayerDropItem: true<br>
 disablePlayerPickupItem: true<br>
@@ -69,7 +73,7 @@ keepInventory: true<br>
 stopallspawning: false<br>
 allowedmobs: []<br>
 disallowedmobs: []<br>
-populationenforcement: {}<br>
+populationcontrol: {}<br>
 rangelimitcheckinterval: 20<br>
 rangelimitspeedmodifier: 1.5<br>
 rangelimits: {}<br>
@@ -78,9 +82,7 @@ Allowedmobs and disallowed mobs are a list of living entities you want or don't 
 You can mix them up as checks follow one to the other, so first checking whether the spawned mob<br>
 is allowed, then checking whether it's a disallowed mob, and then finally checking the count of<br>
 the mobs in the world and seeing if it breaches the limits set.<br><br>
-List them up in the config like this. Dash and space prefixes the allowed and disallowed mob lists,<br>
-while two spaces prefix the populationenforcement mobs, with a colon, space and the number of allowed mobs<br>
-following that. The number of allowed mobs must be an iteger:<br><br>
+List them up in the config like this. Dash and space prefixes the allowed and disallowed mob lists.<br>
 allowedmobs:<br>
 &mdash; ALLAY<br>
 &mdash; DROWNED<br>
@@ -89,9 +91,30 @@ allowedmobs:<br>
 &mdash; WITCH<br>
 &mdash; WOLF<br>
 disallowedmobs: []<br>
-populationenforcement:<br>
-&nbsp;&nbsp;DROWNED: 10<br>
-&nbsp;&nbsp;GLOW_QUID: 20<br>
+
+
+Population control defines how many of a mob are allowed and where to spawn these. Mobs can be defined by<br>
+type or by name (nametag). You can also set the spawn point as a comma separated X, Y and Z coordinates.<br>
+If spawnpoint is not set then the home setting from rangelimits will be used, and if that is not set a warning<br>
+will be issued in the log and no mob spawned. The popcontrolcheckinterval setting determines how frequently the<br>
+mob control checker runs in server ticks.<br>
+
+In this example we have 10 dolphins defined by name, along with the type (required). No spawn point is set, so the<br>
+one from range limits will be used. We maintain a population of 20 parrots and 10 drowned by mob type, with the<br>
+drowned using their own spawn point and the parrots will use the range limits home. The pop control check is<br>
+performed every 1200 server ticks (every minute).
+
+popcontrolcheckinterval: 1200<br>
+populationcontrol:<br>
+&mdash; name: Dodgy Dolphin<br>
+&nbsp;&nbsp;mobtype: DOLPHIN<br>
+&nbsp;&nbsp;max: 10<br>
+&mdash; type: PARROT<br>
+&nbsp;&nbsp;max: 20<br>
+&mdash; type: DROWNED<br>
+&nbsp;&nbsp;max: 10<br>
+&nbsp;&nbsp;spawnpoint: -0.5,33,0.5<br>
+
 
 Range limits are mobs by type or custom name that you want to contain within a radius of a home locaton.<br>
 The rangelimits section defines the name or type of a mob, its home location (x,y,z) and the radius from<br>
