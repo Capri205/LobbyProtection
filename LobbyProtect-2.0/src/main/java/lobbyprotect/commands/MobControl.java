@@ -4,21 +4,27 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import lobbyprotect.Main;
+import lobbyprotect.Main.PopControl;
 
 public class MobControl implements CommandExecutor {
 
@@ -28,6 +34,7 @@ public class MobControl implements CommandExecutor {
 	private String logmsgprefix = null;
 	
 	public MobControl() {
+		
 		chatmsgprefix = Main.getInstance().getChatMsgPrefix();
 		logmsgprefix = Main.getInstance().getLogMsgPrefix();
 	}
@@ -233,52 +240,123 @@ public class MobControl implements CommandExecutor {
 							commandSender.sendMessage( chatmsgprefix + ChatColor.GOLD + "  " + thismob );
 						});
 					}
+					
+					return true;
 				}
 			}
 
 			if ( args[0].equals( "popcon" ) ) {
 				
-	    		Map<String, Integer> popcon = new HashMap<>();
-	    		if ( Main.getInstance().getConfig().contains( "populationenforcement" ) ) {
-	    			for ( String key : Main.getInstance().getConfig().getConfigurationSection( "populationenforcement" ).getKeys( false ) ) {
-	    				popcon.put( key,  Main.getInstance().getConfig().getConfigurationSection( "populationenforcement" ).getInt( key ) );
-	    			}
-	    		}
-	    		
-				if ( args[1].equals( "add" ) ) { 
+				// load up population control
+				Map<String, PopControl> popcontrols = Main.getInstance().getPopControls();
 
-					//Main.getInstance().setInConfigUpdate( true );
+				
+				if ( args[1].equals( "add" ) ) {
 
-					String mob = args[2].toUpperCase();
-					if( !validMob( mob ) ) {
-						commandSender.sendMessage( chatmsgprefix + ChatColor.RED + "'" + mob + "' is not a valid living entity" );
+					if ( args.length < 4 ) {
+						commandSender.sendMessage( chatmsgprefix + ChatColor.RED + "Insufficient arguments provided. Must be one of the following:" );
+						commandSender.sendMessage( chatmsgprefix + ChatColor.WHITE + "/popcon add name:<'Mob Name'> type:<type> max:<number> [ spawnpoint:X,Y,Z ]" );
+						commandSender.sendMessage( chatmsgprefix + ChatColor.WHITE + "/popcon add type:<type> max:<number> [ spawnpoint:X,Y,Z ] " );
 						return false;
 					}
 					
-					Integer count = 0;
-					try {
-						count = Integer.parseInt( args[3] );
-					} catch ( Exception e ) {
-						commandSender.sendMessage( chatmsgprefix + ChatColor.RED + "Count isn't a valid integer" );
+					// parse out the mob entry key value pairs from the 3rd argument onwards
+					Map<String, String> mobparams = new LinkedHashMap<String, String>();
+					boolean invalidMobParams = false;
+					for ( int i = 2; i < args.length; i++ ) {
+						String arg = args[i];
+						if ( !arg.contains( ":" ) ) {
+							commandSender.sendMessage( chatmsgprefix + ChatColor.RED + "Incorrect argument format for parameter " + arg );
+							invalidMobParams = true;
+							break;
+						}
+						String[] keyValue = arg.split(":");
+						mobparams.put( keyValue[0], keyValue[1] );
+					}
+					if ( invalidMobParams ) {
+						return false;
+					}
+
+					// validate entries
+					if ( !mobparams.containsKey( "type" ) ) {
+						commandSender.sendMessage( chatmsgprefix + ChatColor.RED + "The mob type parameter must be provided for mob by type or by name" );
+						return false;
+					}
+					String mobType = mobparams.get( "type" );
+					if( !validMob( mobType ) ) {
+						commandSender.sendMessage( chatmsgprefix + ChatColor.RED + mobType + " is not a valid living entity" );
 						return false;
 					}
 					
-					if ( popcon.containsKey( mob ) ) {
-						if ( popcon.get( mob ) == count ) {
-							commandSender.sendMessage( chatmsgprefix + ChatColor.GOLD + mob + " already present with that count" );
+					boolean mobByName = false;
+					String mobName = null;
+					if ( mobparams.containsKey( "name" ) ) {
+						mobByName = true;
+						mobName = mobparams.get( "name" );
+					}
+					if ( mobByName ) {
+
+						if ( popcontrols.keySet().contains( mobName ) ) {
+							commandSender.sendMessage( chatmsgprefix + ChatColor.RED + "'" + mobName + "' is already in the population control list" );
 							return false;
-						} else {
-							popcon.remove( mob );
-							popcon.put( mob, count);
-							commandSender.sendMessage( chatmsgprefix + ChatColor.GREEN + " Replaced " + mob + " population count with " + count );
 						}
 					} else {
-						popcon.put( mob, count);
-						commandSender.sendMessage( chatmsgprefix + ChatColor.GREEN + " Added " + mob + " to population control with count " + count );
+						
+						if ( popcontrols.keySet().contains( mobparams.get( "type" ).toUpperCase() ) ) {
+							commandSender.sendMessage( chatmsgprefix + ChatColor.RED + mobType + " is already in the population control list" );
+							return false;
+						}
 					}
-					config.set( "populationenforcement", popcon );
-					Main.getInstance().saveConfig();
-		    		Main.getInstance().reloadConfig();
+					
+					if ( !mobparams.containsKey( "max" ) ) {
+						commandSender.sendMessage( chatmsgprefix + ChatColor.RED + "The max parameter must be provided" );
+						return false;
+					}
+					Integer max = null;
+					try {
+						max = Integer.parseInt( mobparams.get( "max" ) );
+					} catch ( Exception e ) {
+						commandSender.sendMessage( chatmsgprefix + ChatColor.RED + "Max parameter isn't a valid integer" );
+						return false;
+					}
+					
+					Location  spawnpoint = null;
+					if ( mobparams.keySet().contains( "spawnpoint" ) ) {
+						String[] coords = mobparams.get( "spawnpoint" ).split( "," );
+						if ( coords.length != 3 ) {
+							commandSender.sendMessage( chatmsgprefix + ChatColor.RED + "Invalid spawnpoint parameter. Requires 3 comma separated numbers" );
+						}
+						for ( int i = 0; i < 3; i++ ) {
+							try {
+								Double.parseDouble( coords[i] );
+							} catch ( Exception e ) {
+								commandSender.sendMessage( chatmsgprefix + ChatColor.RED + "Invalid coordinate for spawnpoint" );
+								return false;
+							}
+						}
+						spawnpoint = new Location( Bukkit.getWorld( "world" ), Double.parseDouble( coords[0] ), Double.parseDouble( coords[1] ), Double.parseDouble( coords[2] ) );
+					}
+					
+					// populate mob entry to population controls and config
+        			Map<String, Object> mobentry = new HashMap<>();
+    				if ( spawnpoint != null ) { mobentry.put( "spawnpoint" , mobparams.get( "spawnpoint" ) ); }
+    				mobentry.put( "max" , max );
+    				mobentry.put( "type" , mobType );
+        			if ( mobByName ) {
+        				popcontrols.put( mobName, new PopControl( "name", max, spawnpoint, mobType ) );
+        				mobentry.put( "name",  mobName );
+        			} else {
+        				popcontrols.put( mobType.toUpperCase(), new PopControl( "type", max, spawnpoint, mobType ) );
+        			}
+    				
+    				List<Map<?,?>> popcontrolconfig = Main.getInstance().getConfig().getMapList( "populationcontrol" );
+	        		popcontrolconfig.add( mobentry );
+	        		Main.getInstance().getConfig().set( "populationcontrol", popcontrolconfig );
+	        		Main.getInstance().saveConfig();
+	        		
+		    		Main.getInstance().setInConfigUpdate( false );
+				
+					commandSender.sendMessage( chatmsgprefix + ChatColor.GREEN + " Added " + ( mobByName ? "'" + mobName +"'" : mobType ) + " to population control with max " + max );
 
 					return true;
 				}
@@ -287,46 +365,79 @@ public class MobControl implements CommandExecutor {
 					
 					Main.getInstance().setInConfigUpdate( true );
 
-					if ( popcon.isEmpty() ) {
-						commandSender.sendMessage( chatmsgprefix + ChatColor.GOLD + "Population enforcement list is empty. Nothing to remove." );
+					if ( popcontrols.isEmpty() ) {
+						commandSender.sendMessage( chatmsgprefix + ChatColor.GOLD + "Population control list is empty. Nothing to remove." );
 						return true;
 					}
 					
 					String mob = args[2].toUpperCase();
-					if( !validMob( mob ) ) {
-						commandSender.sendMessage( chatmsgprefix + ChatColor.RED + "'" + mob + "' is not a valid living entity" );
-						return false;
-					}
 					
-					if ( !validMob( mob ) ) {
-						commandSender.sendMessage( chatmsgprefix + ChatColor.RED + "'" + mob + "' is not a valid living entity" );
-						return false;
-					}
-					
-					if ( !popcon.keySet().contains( mob ) ) {
+					// remove mob entry from pop controls and from pop control config
+					if ( !popcontrols.keySet().contains( mob ) ) {
 						commandSender.sendMessage( chatmsgprefix + ChatColor.GOLD + mob + " is not in the population control list" );
 						return false;
 					}
-					popcon.remove( mob );
-					config.set( "populationenforcement", popcon );
-					Main.getInstance().saveConfig();
+					popcontrols.remove( mob );
+
+		        	Iterator<Map<?,?>> pccit = Main.getInstance().getConfig().getMapList( "populationcontrol" ).iterator();
+		        	int idx = 0; int idxToRemove = -1;
+		        	while( pccit.hasNext() ) {
+		        		Map<?,?> mobentry = pccit.next();
+		        		if ( ( mobentry.containsKey( "name" ) && mobentry.get( "name" ).equals( mob ) ) ||
+							 ( mobentry.containsKey( "type" ) && mobentry.get( "type" ).equals( mob ) ) ) {
+		        			log.log(Level.INFO,"debug - removing "+mob+" from pop control config");
+		        			idxToRemove = idx;
+		        			break;
+		        		}
+		        		idx++;
+		        	}
+		        	// get population control config, remove mob entry and save back the config
+		        	if ( idxToRemove > -1 ) {
+		        		List<Map<?,?>> popcontrolconfig = Main.getInstance().getConfig().getMapList( "populationcontrol" );
+		        		popcontrolconfig.remove(idxToRemove);
+		        		Main.getInstance().getConfig().set( "populationcontrol", popcontrolconfig );
+		        		Main.getInstance().saveConfig();
+		        	}
+	        		
+		    		Main.getInstance().setInConfigUpdate( false );
+		    		
 					commandSender.sendMessage( chatmsgprefix + ChatColor.GREEN + "" + mob + " removed from population control" );
-					
-					Main.getInstance().setInConfigUpdate( false );
 
 					return true;
 				}
 				
 				if ( args[1].equals( "list" ) ) {
-					if ( popcon.isEmpty() ) {
+					if ( popcontrols.isEmpty() ) {
 						commandSender.sendMessage( chatmsgprefix + ChatColor.GOLD + "Population control list is empty" );
 					} else {
-						commandSender.sendMessage( chatmsgprefix + ChatColor.GOLD + "Population control contains " + popcon.keySet().size() + " mob" + ( popcon.keySet().size() != 1 ? "s" : "" ) );
-						popcon.keySet().forEach( thismob -> {
-							commandSender.sendMessage( chatmsgprefix + ChatColor.GOLD + "  " + thismob + ": " + popcon.get( thismob ) );
+						commandSender.sendMessage( chatmsgprefix + ChatColor.GOLD + "Population control contains " + popcontrols.size() + " mob" + ( popcontrols.size() != 1 ? "s" : "" ) );
+						popcontrols.keySet().forEach( thismob -> {
+							PopControl popmob = popcontrols.get( thismob );
+							String mobstring = "";
+							if ( popmob.getby().equals( "name" ) ) {
+								mobstring = ChatColor.LIGHT_PURPLE + "name: '" + thismob + "', type: " + popmob.getMobType();
+							} else {
+								mobstring = ChatColor.LIGHT_PURPLE + "type: " + thismob;
+							}
+							mobstring += ChatColor.WHITE + ", max: " + popmob.getMax();
+							Location spawnpoint = popmob.getSpawnPoint();
+							if ( spawnpoint == null ) {
+								if ( Main.getInstance().getRangeMobs().containsKey( thismob ) ) {
+									spawnpoint = Main.getInstance().getRangeMob( thismob ).getHome();
+								}
+							}
+							if ( spawnpoint == null ) {
+								mobstring += ", no spawn set"; 
+							} else {
+								mobstring += ", spawn " + spawnpoint.getX() + "," + spawnpoint.getY() + "," + spawnpoint.getZ();
+							}
+
+							commandSender.sendMessage( chatmsgprefix + ChatColor.GOLD + "  " + mobstring );
 						});
 					}
 				}
+				
+				return true;
 			}
 		}
 		

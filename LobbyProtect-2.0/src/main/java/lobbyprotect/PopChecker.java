@@ -37,12 +37,15 @@ public class PopChecker  extends BukkitRunnable{
 
 		// we don't need population control if nobody is there to benefit from it
 		// also popcontrol size should never be zero here, but but just in case
+		log.log(Level.INFO, "debug - popcontrol size: " + popcontrol.size());
 		if ( Bukkit.getOnlinePlayers().size() == 0 || popcontrol.size() == 0 ) {
 			return;
 		}
 		
 		// create a list of mobs in the world
     	for ( String mob : popcontrol.keySet() ) {
+    		
+    		log.log(Level.INFO, "debug - checking " + mob);
     		
     		List<UUID> moblist = new ArrayList<>();
     		Stream<Entity> entityStream;
@@ -77,20 +80,24 @@ public class PopChecker  extends BukkitRunnable{
 
 			// check if we're under populated to max
 			int max = popcontrol.get( mob ).getMax();
+			log.log(Level.INFO, "debug -  " + mob + ", moblist size: " + moblist.size() + ", max: " + max);
 			if ( moblist.size() >= max ) {
-				return;
+				continue;
     		}
 			
 			int mobstoadd = ( max - moblist.size( ) );
+			log.log(Level.INFO, "debug -  " + mob + ", need to add " + mobstoadd);
 
 			// get spawn and if not provided get home from range limits for this mob if there, otherwise can't spawn
 			Location spawnpoint = popcontrol.get( mob ).getSpawnPoint();
 			if ( spawnpoint == null ) {
-				spawnpoint = this.plugin.getRangeMob( mob ).getHome();
+				if ( Main.getInstance().getRangeMobs().containsKey( mob ) ) {
+					spawnpoint = Main.getInstance().getRangeMob( mob ).getHome();
+				}
 				if ( spawnpoint == null ) {
 					log.log(Level.WARNING, this.plugin.getLogMsgPrefix() + "Unable to find a spawn point for spawning " + mob);
 					log.log(Level.WARNING, this.plugin.getLogMsgPrefix() + "Please set one in the configuration file");
-					return;
+					continue;
 				}
 			}
 			
@@ -103,6 +110,7 @@ public class PopChecker  extends BukkitRunnable{
 			}
 			
 			// add mobs up to max specified
+			log.log(Level.INFO, "debug - popchk - " + mob + ", count: " + moblist.size() + ", max: " + max);
 			while( mobstoadd > 0 ) {
 				spawnMob(mobType, spawnpoint, ( checkByName ? mob : "" ) );
 				mobstoadd--;
@@ -121,6 +129,7 @@ public class PopChecker  extends BukkitRunnable{
 	 */
 	private boolean spawnMob( EntityType mobType, Location spawnpoint, String mob ) {
 	
+		 log.log(Level.INFO, "debug - popcheck - spawnMob" + mobType.name() + ", loc: " + spawnpoint.getX()+","+spawnpoint.getY()+","+spawnpoint.getZ() +", mob: " + mob);
 		LivingEntity newMob;
 		newMob = (LivingEntity) Bukkit.getWorld( "world" ).spawnEntity( spawnpoint, mobType );
 		if ( newMob == null ) {

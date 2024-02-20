@@ -30,7 +30,7 @@ import lobbyprotect.listeners.Listeners;
 
 public final class Main extends JavaPlugin {
 
-	Logger log = Logger.getLogger("Minecraft");
+	static Logger log = Logger.getLogger("Minecraft");
 
     private static Main instance;
 
@@ -40,7 +40,6 @@ public final class Main extends JavaPlugin {
 	private static String logmsgprefix = pluginprefix + " » ";
 	
 	private static boolean inConfigUpdate = false;
-
 
 	// stores a map of mobs and their home and radius in blocks the mob must maintain from home
 	public record RangeMob( String getby, Location home, int radius ) {
@@ -88,7 +87,7 @@ public final class Main extends JavaPlugin {
 	
     @Override
     public void onLoad() {
-        instance = this;
+		instance = this;
 
         saveConfig();
         if (!getConfig().contains("disablePlayerDamage")) { getConfig().set("disablePlayerDamage", true); }
@@ -198,12 +197,13 @@ public final class Main extends JavaPlugin {
         			} else {
         				spawnpoint = null;
         			}
-        			if ( mobpc.keySet().contains( "type" ) ) {
-        				popcontrols.put( ( (String) mobpc.get( "type" ) ).toUpperCase(),
-        					new PopControl( "type", (int)mobpc.get( "max" ), spawnpoint, (String) mobpc.get( "type" ) ) );
-        			} else if ( mobpc.keySet().contains( "name" ) ) {
+        			
+        			if ( mobpc.keySet().contains( "name" ) ) {
         				popcontrols.put( ( (String) mobpc.get( "name" ) ),
         					new PopControl( "name", (int)mobpc.get( "max" ), spawnpoint, (String) mobpc.get( "mobtype" ) ) );
+        			} else if ( mobpc.keySet().contains( "type" ) ) {
+        				popcontrols.put( ( (String) mobpc.get( "type" ) ).toUpperCase(),
+           					new PopControl( "type", (int)mobpc.get( "max" ), spawnpoint, (String) mobpc.get( "type" ) ) );
         			} else {
         				log.log(Level.WARNING, getLogMsgPrefix() + "Population control entry doesn't contain required 'name' or 'type' fields");
         				log.log(Level.WARNING, getLogMsgPrefix() + mobpc.toString());
@@ -284,6 +284,9 @@ public final class Main extends JavaPlugin {
 		return Main.rangemobs;
 	}
 	public RangeMob getRangeMob( String mob ) {
+		if ( !Main.rangemobs.containsKey( mob ) ) {
+			return null;
+		}	
 		return Main.rangemobs.get( mob );
 	}
 	public Map<String, PopControl> getPopControls() {
