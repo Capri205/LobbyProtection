@@ -385,7 +385,6 @@ public class MobControl implements CommandExecutor {
 		        		Map<?,?> mobentry = pccit.next();
 		        		if ( ( mobentry.containsKey( "name" ) && mobentry.get( "name" ).equals( mob ) ) ||
 							 ( mobentry.containsKey( "type" ) && mobentry.get( "type" ).equals( mob ) ) ) {
-		        			log.log(Level.INFO,"debug - removing "+mob+" from pop control config");
 		        			idxToRemove = idx;
 		        			break;
 		        		}

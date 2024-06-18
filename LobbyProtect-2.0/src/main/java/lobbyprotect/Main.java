@@ -87,6 +87,7 @@ public final class Main extends JavaPlugin {
 	
     @Override
     public void onLoad() {
+
 		instance = this;
 
         saveConfig();
@@ -301,4 +302,37 @@ public final class Main extends JavaPlugin {
 	public List<UUID> getPopTrackerUUIDs( String mob ) {
 		return Main.poptracker.get( mob );
 	}
+
+	/*
+	 * Save population controls back to config
+	 * This requires us to build a list of hashes and set that in the config
+	 */
+/*
+	public static void savePopControls() {
+		List<Object> poplist = new ArrayList<>();
+		Map<String, Object> popconfig = new HashMap<>();
+		for ( String mob : Main.popcontrols.keySet() ) {
+			
+			log.log(Level.INFO, "debug - processing: " + mob);
+			if ( Main.popcontrols.get( mob ).getby().equals( "name" ) ) {
+				log.log(Level.INFO, "debug -   name: " + mob + ", type: " + Main.popcontrols.get( mob ).getMobType());
+				popconfig.put( "name", mob );
+				popconfig.put( "type", Main.popcontrols.get( mob ).getMobType() );
+			} else {
+				log.log(Level.INFO, "debug -   type: " + mob );
+				popconfig.put( "type",  mob );
+			}
+			popconfig.put( "max", Main.popcontrols.get( mob ).getMax() );
+			log.log(Level.INFO, "debug -   max: ", Main.popcontrols.get( mob ).getMax());
+			Location spawnpoint = Main.popcontrols.get( mob ).getSpawnPoint();
+			if ( spawnpoint != null ) {
+				log.log(Level.INFO, "debug -  spawnpoint: " + spawnpoint.getX() + "," + spawnpoint.getY() + "," + spawnpoint.getZ());
+				popconfig.put( "spawnpoint", spawnpoint.getX() + "," + spawnpoint.getY() + "," + spawnpoint.getZ());
+			}
+			poplist.add( popconfig );
+		}
+		Main.getInstance().getConfig().set( "populationcontrol", poplist );
+		Main.getInstance().saveConfig();		
+	}
+*/
 }

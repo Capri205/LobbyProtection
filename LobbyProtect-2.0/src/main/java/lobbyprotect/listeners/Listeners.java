@@ -307,7 +307,6 @@ public class Listeners implements Listener {
 
     		// cancel spawn if we are at or above the world count for that mob
 			int max = popcontrol.get( checkByName ? spawnedmobname : spawnedmobtype ).getMax();
-			log.log(Level.INFO, "debug - listen - " + ( checkByName ? spawnedmobname : spawnedmobtype  ) + ", count: " + mobCount + ", max: " + max);
 			if ( mobCount > max ) {
 				event.setCancelled( true );
 			}
