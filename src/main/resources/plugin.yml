@@ -1,0 +1,11 @@
+name: LobbyProtection
+version: '${project.version}'
+main: lobbyprotection.Main
+api-version: "1.21"
+commands:
+  lpbld:
+    permission: build.buildCommand
+  lpdmg:
+    permission: damage.damageCommand
+  lpmob:
+    permission: lpmob.control
